@@ -9,12 +9,14 @@ For now this is just a simple adaptation of some of the Beam examples to work wi
 
 Begin by creating a venv with Beam and the [DataStax Driver for Apache Cassandra](https://github.com/datastax/python-driver) installed.  [Instructions](https://beam.apache.org/get-started/quickstart-py/) for doing so can be found on the Apache Beam site.  This should work out to something like the following:
 
-> python -m venv beam-astra
-> . ./beam-astra/bin/activate
-> pip install --upgrade pip
-> pip install --upgrade setuptools
-> pip install apache-beam
-> pip install cassandra-driver
+```
+python -m venv beam-astra
+. ./beam-astra/bin/activate
+pip install --upgrade pip
+pip install --upgrade setuptools
+pip install apache-beam
+pip install cassandra-driver
+```
 
 # Running the app
 

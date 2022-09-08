@@ -1,5 +1,5 @@
 # beam-astra
-Example(s) of using DataStax Astra with Apache Beam.
+Example(s) of using DataStax Astra with Apache Flink.
 
 # Overview
 

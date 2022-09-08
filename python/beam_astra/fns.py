@@ -1,10 +1,11 @@
 import apache_beam as beam
 
-from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster, BatchStatement, ConsistencyLevel
 from cassandra.auth import PlainTextAuthProvider
 
 import logging
 import re
+
 
 class WordExtractingDoFn(beam.DoFn):
     """Parse each line of input text into words."""
@@ -19,6 +20,7 @@ class WordExtractingDoFn(beam.DoFn):
         """
         return re.findall(r'[\w\']+', element, re.UNICODE)
 
+
 class AstraStoreDoFn(beam.DoFn):
     """Adaptation of our example Flink application (https://github.com/absurdfarce/flink-astra) to work with Beam"""
 
@@ -26,6 +28,9 @@ class AstraStoreDoFn(beam.DoFn):
         self.scb = scb
         self.clientid = clientid
         self.secret = secret
+
+        self.toInsert = []
+        self.batchSize = 3
 
         self.log = logging.getLogger()
         self.log.setLevel('DEBUG')
@@ -50,10 +55,14 @@ class AstraStoreDoFn(beam.DoFn):
         self.cluster.shutdown()
 
     def process(self, element):
-        (word, count) = element
-        self.log.info(
-            "Executing prepared statement, word: %s, count: %s", word, count)
-        self.session.execute(self.ps, element)
+        self.toInsert.append(element)
+        if len(self.toInsert) >= self.batchSize:
+            batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+            # TODO: Probably should copy this list rather than iterate over it at this point
+            for elem in self.toInsert:
+                batch.add(self.ps, elem)
+            self.session.execute(batch)
+            self.toInsert.clear()
 
     def _setupSchema(self):
         self.session.execute("drop table if exists example.wordcount")
